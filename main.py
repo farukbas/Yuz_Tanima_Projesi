@@ -1,2 +1,44 @@
 import cv2
-print(cv2.__version__)
+import numpy as np 
+import os
+import sys
+
+camera = cv2.VideoCapture(0)
+width = int(camera.get(cv2.CAP_PROP_FRAME_WIDTH))
+height = int(camera.get(cv2.CAP_PROP_FRAME_HEIGHT))
+
+faceCascade = cv2.CascadeClassifier("haarcascade_frontalface_default.xml")
+
+name = input("Adınız nedir ? ")
+dirName = "./images/" + name
+print(dirName)
+if not os.path.exists(dirName):
+	os.makedirs(dirName)
+	print("Dosya Oluşturuldu")
+else:
+	print("İsim bulunamadı")
+	sys.exit()
+
+count = 1
+for frame in camera.capture_continuous:
+	if count > 30:
+		break
+	frame = frame.array
+	gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+	faces = faceCascade.detectMultiScale(gray, scaleFactor = 1.5, minNeighbors = 5)
+	for (x, y, w, h) in faces:
+		roiGray = gray[y:y+h, x:x+w]
+		fileName = dirName + "/" + name + str(count) + ".jpg"
+		cv2.imwrite(fileName, roiGray)
+		cv2.imshow("face", roiGray)
+		cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
+		count += 1
+
+	cv2.imshow('frame', frame)
+	key = cv2.waitKey(1)
+	
+
+	if key == 27:
+		break
+
+cv2.destroyAllWindows()
